@@ -73,6 +73,13 @@ def load_user(user_id):
 
 
 # ---------------------------------------------------------------------------
+# Database Initialization (Runs on module import for Gunicorn & Flask run)
+# ---------------------------------------------------------------------------
+with app.app_context():
+    db.create_all()
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 def get_watsonx_client():
@@ -373,7 +380,5 @@ def profile():
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=os.getenv('FLASK_DEBUG', '0') == '1')

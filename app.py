@@ -14,13 +14,22 @@ load_dotenv()
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-prod')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///learnmate.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///learnmate.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
+
+
+# ---------------------------------------------------------------------------
+# Global Template Context
+# ---------------------------------------------------------------------------
+@app.context_processor
+def inject_user():
+    return {'user': current_user}
+
 
 # ---------------------------------------------------------------------------
 # Models
@@ -32,7 +41,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     career_goal   = db.Column(db.String(200))
     skills        = db.Column(db.Text)          # JSON string
-    is_admin      = db.Column(db.Boolean, default=False)  # Admin flag
+    is_admin      = db.Column(db.Boolean, default=False)
     joined_at     = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
@@ -170,13 +179,10 @@ def logout():
 @app.route('/admin/users')
 @login_required
 def admin_users():
-    # Only allow users with is_admin = True
     if not getattr(current_user, 'is_admin', False):
         abort(403)
 
     users = User.query.order_by(User.joined_at.desc()).all()
-    
-    # Parse skills JSON for display
     user_list = []
     for u in users:
         parsed_skills = []
@@ -235,7 +241,6 @@ def dashboard():
 
     return render_template(
         'dashboard.html',
-        user=current_user,
         skills=skills,
         progress=progress,
         completed=completed,
@@ -250,7 +255,7 @@ def dashboard():
 @app.route('/roadmap')
 @login_required
 def roadmap():
-    return render_template('roadmap.html', user=current_user)
+    return render_template('roadmap.html')
 
 
 # ---------------------------------------------------------------------------
@@ -259,7 +264,7 @@ def roadmap():
 @app.route('/courses')
 @login_required
 def courses():
-    return render_template('courses.html', user=current_user)
+    return render_template('courses.html')
 
 
 # ---------------------------------------------------------------------------
@@ -271,7 +276,7 @@ def chatbot():
     history = ChatHistory.query.filter_by(user_id=current_user.id)\
                                .order_by(ChatHistory.created_at)\
                                .all()
-    return render_template('chatbot.html', user=current_user, history=history)
+    return render_template('chatbot.html', history=history)
 
 
 @app.route('/api/chat', methods=['POST'])
@@ -315,7 +320,7 @@ def api_chat():
     else:
         reply = (
             "⚠️ AI service is not configured. "
-            "Please add your WATSONX_API_KEY and WATSONX_PROJECT_ID to the .env file."
+            "Please add your WATSONX_API_KEY and WATSONX_PROJECT_ID to the environment variables."
         )
 
     db.session.add(ChatHistory(user_id=current_user.id, role='assistant', message=reply))
@@ -361,7 +366,7 @@ def profile():
             skills = json.loads(current_user.skills)
         except Exception:
             pass
-    return render_template('profile.html', user=current_user, skills=skills)
+    return render_template('profile.html', skills=skills)
 
 
 # ---------------------------------------------------------------------------

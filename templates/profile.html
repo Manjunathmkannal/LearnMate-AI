@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="lm-profile-page">
+  <div class="row g-4">
+
+    <!-- Left: Profile Card -->
+    <div class="col-lg-4">
+      <div class="lm-card lm-profile-card text-center mb-4">
+        <div class="lm-profile-avatar-wrap">
+          <div class="lm-profile-avatar">{{ user.name[0].upper() }}</div>
+        </div>
+        <h5 class="lm-profile-name mt-3 mb-0">{{ user.name }}</h5>
+        <p class="text-muted small mt-1">{{ user.email }}</p>
+        <div class="lm-profile-role-badge mt-2">Student</div>
+        {% if user.career_goal %}
+        <div class="lm-profile-goal mt-3">
+          <i class="bi bi-bullseye me-1 text-danger"></i>
+          {{ user.career_goal }}
+        </div>
+        {% endif %}
+        <div class="lm-profile-joined mt-2 text-muted small">
+          <i class="bi bi-calendar3 me-1"></i>
+          Joined {{ user.joined_at.strftime('%B %Y') if user.joined_at else 'Recently' }}
+        </div>
+        <a href="{{ url_for('onboarding') }}" class="btn lm-btn-primary w-100 mt-4">
+          <i class="bi bi-pencil-fill me-2"></i>Edit Profile
+        </a>
+      </div>
+    </div>
+
+    <!-- Right: Details -->
+    <div class="col-lg-8">
+
+      <!-- Skills -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>My Skills</h6>
+          <a href="{{ url_for('onboarding') }}" class="lm-card-link">Edit</a>
+        </div>
+        <div class="lm-card-body">
+          {% if skills %}
+            <div class="d-flex flex-wrap gap-2">
+              {% for skill in skills %}
+                <span class="lm-skill-pill lm-skill-pill-lg">{{ skill }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-2">No skills added yet.</p>
+            <a href="{{ url_for('onboarding') }}" class="btn lm-btn-primary btn-sm">Add Skills</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Account Info -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-person-fill me-2 text-primary"></i>Account Details</h6>
+        </div>
+        <div class="lm-card-body">
+          <div class="lm-info-row">
+            <span class="lm-info-label">Full Name</span>
+            <span class="lm-info-value">{{ user.name }}</span>
+          </div>
+          <div class="lm-info-row">
+            <span class="lm-info-label">Email</span>
+            <span class="lm-info-value">{{ user.email }}</span>
+          </div>
+          <div class="lm-info-row">
+            <span class="lm-info-label">Career Goal</span>
+            <span class="lm-info-value">{{ user.career_goal or '—' }}</span>
+          </div>
+          <div class="lm-info-row">
+            <span class="lm-info-label">Member Since</span>
+            <span class="lm-info-value">{{ user.joined_at.strftime('%B %d, %Y') if user.joined_at else '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="lm-card">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-grid me-2 text-primary"></i>Quick Actions</h6>
+        </div>
+        <div class="lm-card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <a href="{{ url_for('roadmap') }}" class="lm-quick-action-card">
+                <i class="bi bi-map-fill lm-qa-icon lm-qa-blue"></i>
+                <div>
+                  <div class="lm-qa-title">View Roadmap</div>
+                  <div class="lm-qa-desc">See your learning path</div>
+                </div>
+              </a>
+            </div>
+            <div class="col-sm-6">
+              <a href="{{ url_for('courses') }}" class="lm-quick-action-card">
+                <i class="bi bi-journal-bookmark-fill lm-qa-icon lm-qa-purple"></i>
+                <div>
+                  <div class="lm-qa-title">Browse Courses</div>
+                  <div class="lm-qa-desc">Explore course library</div>
+                </div>
+              </a>
+            </div>
+            <div class="col-sm-6">
+              <a href="{{ url_for('chatbot') }}" class="lm-quick-action-card">
+                <i class="bi bi-robot lm-qa-icon lm-qa-green"></i>
+                <div>
+                  <div class="lm-qa-title">AI Tutor</div>
+                  <div class="lm-qa-desc">Chat with IBM Granite</div>
+                </div>
+              </a>
+            </div>
+            <div class="col-sm-6">
+              <a href="{{ url_for('logout') }}" class="lm-quick-action-card lm-qa-danger">
+                <i class="bi bi-box-arrow-right lm-qa-icon lm-qa-red"></i>
+                <div>
+                  <div class="lm-qa-title">Sign Out</div>
+                  <div class="lm-qa-desc">Log out of your account</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

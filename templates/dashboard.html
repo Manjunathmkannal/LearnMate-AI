@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="lm-dashboard">
+
+  <!-- ── Welcome Banner ── -->
+  <div class="lm-welcome-banner mb-4">
+    <div>
+      <h4 class="lm-welcome-heading mb-1">
+        Welcome back, {{ user.name.split()[0] }}! 👋
+      </h4>
+      <p class="lm-welcome-sub mb-0">
+        {% if user.career_goal %}
+          You're on track towards <strong>{{ user.career_goal }}</strong>. Keep it up!
+        {% else %}
+          Complete your <a href="{{ url_for('onboarding') }}" class="lm-link">profile setup</a> to get your personalized roadmap.
+        {% endif %}
+      </p>
+    </div>
+    <a href="{{ url_for('roadmap') }}" class="btn lm-btn-primary mt-2 mt-md-0">
+      <i class="bi bi-map-fill me-2"></i>View Roadmap
+    </a>
+  </div>
+
+  <!-- ── Stat Cards ── -->
+  <div class="row g-4 mb-4">
+    <div class="col-6 col-xl-3">
+      <div class="lm-stat-card lm-sc-blue">
+        <div class="lm-sc-icon"><i class="bi bi-journal-check"></i></div>
+        <div class="lm-sc-body">
+          <div class="lm-sc-value">{{ completed }}</div>
+          <div class="lm-sc-label">Completed</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="lm-stat-card lm-sc-purple">
+        <div class="lm-sc-icon"><i class="bi bi-play-circle-fill"></i></div>
+        <div class="lm-sc-body">
+          <div class="lm-sc-value">{{ in_progress }}</div>
+          <div class="lm-sc-label">In Progress</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="lm-stat-card lm-sc-green">
+        <div class="lm-sc-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div class="lm-sc-body">
+          <div class="lm-sc-value">{{ skills|length }}</div>
+          <div class="lm-sc-label">Skills Listed</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="lm-stat-card lm-sc-orange">
+        <div class="lm-sc-icon"><i class="bi bi-trophy-fill"></i></div>
+        <div class="lm-sc-body">
+          <div class="lm-sc-value">{{ total }}</div>
+          <div class="lm-sc-label">Total Enrolled</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main Grid ── -->
+  <div class="row g-4">
+
+    <!-- Left column -->
+    <div class="col-lg-8">
+
+      <!-- Learning Progress -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Learning Progress</h6>
+          <a href="{{ url_for('courses') }}" class="lm-card-link">View all</a>
+        </div>
+        <div class="lm-card-body">
+          {% if progress %}
+            {% for p in progress %}
+            <div class="lm-progress-row mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="lm-pr-title">{{ p.course }}</span>
+                <span class="lm-status-badge lm-status-{{ p.status }}">
+                  {{ p.status.replace('_', ' ').title() }}
+                </span>
+              </div>
+              <div class="lm-progress-track">
+                <div class="lm-progress-bar-fill
+                  {% if p.status == 'completed' %}lm-pb-green
+                  {% elif p.status == 'in_progress' %}lm-pb-blue
+                  {% else %}lm-pb-gray{% endif %}"
+                  style="width: {% if p.status == 'completed' %}100{% elif p.status == 'in_progress' %}55{% else %}0{% endif %}%">
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="lm-empty-state py-4 text-center">
+              <i class="bi bi-journal-x lm-empty-icon"></i>
+              <p class="mt-3 mb-0">No courses tracked yet.</p>
+              <a href="{{ url_for('courses') }}" class="btn lm-btn-primary btn-sm mt-3">Browse Courses</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- AI Tutor Quick Chat -->
+      <div class="lm-card">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-robot me-2 text-primary"></i>Quick Ask – AI Tutor</h6>
+          <a href="{{ url_for('chatbot') }}" class="lm-card-link">Open full chat</a>
+        </div>
+        <div class="lm-card-body">
+          <div class="lm-quick-chat" id="quickChatBox">
+            <div class="lm-chat-bubble lm-bubble-ai">
+              <div class="lm-bubble-avatar"><i class="bi bi-robot"></i></div>
+              <div class="lm-bubble-msg">
+                Hi {{ user.name.split()[0] }}! I'm your AI learning tutor powered by IBM Granite.
+                Ask me anything about your courses or career path.
+              </div>
+            </div>
+          </div>
+          <div class="lm-quick-chat-input mt-3 d-flex gap-2">
+            <input id="quickInput" type="text" class="form-control lm-chat-input"
+              placeholder="Ask a quick question…" />
+            <button id="quickSend" class="btn lm-btn-primary px-4">
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right column -->
+    <div class="col-lg-4">
+
+      <!-- Your Skills -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Your Skills</h6>
+          <a href="{{ url_for('profile') }}" class="lm-card-link">Edit</a>
+        </div>
+        <div class="lm-card-body">
+          {% if skills %}
+            <div class="d-flex flex-wrap gap-2">
+              {% for skill in skills %}
+                <span class="lm-skill-pill">{{ skill }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-2">No skills added yet.</p>
+            <a href="{{ url_for('onboarding') }}" class="btn lm-btn-primary btn-sm">Add Skills</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Career Goal -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-bullseye me-2 text-danger"></i>Career Goal</h6>
+          <a href="{{ url_for('onboarding') }}" class="lm-card-link">Update</a>
+        </div>
+        <div class="lm-card-body">
+          {% if user.career_goal %}
+            <div class="lm-goal-display">
+              <i class="bi bi-arrow-right-circle-fill lm-goal-icon"></i>
+              <span>{{ user.career_goal }}</span>
+            </div>
+          {% else %}
+            <p class="text-muted small mb-2">No goal set yet.</p>
+            <a href="{{ url_for('onboarding') }}" class="btn lm-btn-primary btn-sm">Set Goal</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Suggested Next Steps -->
+      <div class="lm-card">
+        <div class="lm-card-header">
+          <h6 class="mb-0"><i class="bi bi-stars me-2 text-primary"></i>Suggested Next Steps</h6>
+        </div>
+        <div class="lm-card-body">
+          <ul class="lm-next-steps-list">
+            {% if not user.career_goal %}
+            <li class="lm-step-item lm-step-todo">
+              <i class="bi bi-circle"></i>
+              <span>Set your career goal</span>
+              <a href="{{ url_for('onboarding') }}"><i class="bi bi-arrow-right"></i></a>
+            </li>
+            {% endif %}
+            {% if not skills %}
+            <li class="lm-step-item lm-step-todo">
+              <i class="bi bi-circle"></i>
+              <span>Add your skills</span>
+              <a href="{{ url_for('onboarding') }}"><i class="bi bi-arrow-right"></i></a>
+            </li>
+            {% endif %}
+            <li class="lm-step-item lm-step-todo">
+              <i class="bi bi-circle"></i>
+              <span>Generate AI roadmap</span>
+              <a href="{{ url_for('roadmap') }}"><i class="bi bi-arrow-right"></i></a>
+            </li>
+            <li class="lm-step-item lm-step-todo">
+              <i class="bi bi-circle"></i>
+              <span>Enroll in first course</span>
+              <a href="{{ url_for('courses') }}"><i class="bi bi-arrow-right"></i></a>
+            </li>
+            <li class="lm-step-item lm-step-todo">
+              <i class="bi bi-circle"></i>
+              <span>Chat with AI Tutor</span>
+              <a href="{{ url_for('chatbot') }}"><i class="bi bi-arrow-right"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Quick-chat widget on dashboard
+(function () {
+  const box   = document.getElementById('quickChatBox');
+  const input = document.getElementById('quickInput');
+  const send  = document.getElementById('quickSend');
+  if (!box || !input || !send) return;
+
+  function appendBubble(role, text) {
+    const wrap = document.createElement('div');
+    wrap.className = `lm-chat-bubble lm-bubble-${role} mt-2`;
+    wrap.innerHTML = `
+      <div class="lm-bubble-avatar">${role === 'ai' ? '<i class="bi bi-robot"></i>' : '<i class="bi bi-person-fill"></i>'}</div>
+      <div class="lm-bubble-msg">${text}</div>`;
+    box.appendChild(wrap);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function sendMsg() {
+    const msg = input.value.trim();
+    if (!msg) return;
+    appendBubble('user', msg);
+    input.value = '';
+    send.disabled = true;
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      appendBubble('ai', data.reply || 'No response.');
+    } catch {
+      appendBubble('ai', 'Connection error. Please try again.');
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
+  }
+
+  send.addEventListener('click', sendMsg);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+})();
+</script>
+{% endblock %}

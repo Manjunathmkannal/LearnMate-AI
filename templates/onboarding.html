@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Onboarding{% endblock %}
+{% block page_title %}Profile Setup{% endblock %}
+
+{% block content %}
+<div class="lm-onboarding">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+
+      <div class="lm-onboard-header text-center mb-5">
+        <div class="lm-onboard-icon mb-3"><i class="bi bi-stars"></i></div>
+        <h3 class="lm-onboard-title">Let's personalize your learning path</h3>
+        <p class="lm-onboard-desc">
+          Tell us about your career goal and current skills so IBM Granite AI can
+          build a roadmap crafted specifically for you.
+        </p>
+        <!-- Step indicator -->
+        <div class="lm-steps mt-4">
+          <div class="lm-step lm-step-done"><span>1</span> Account</div>
+          <div class="lm-step-line lm-line-done"></div>
+          <div class="lm-step lm-step-active"><span>2</span> Goals & Skills</div>
+          <div class="lm-step-line"></div>
+          <div class="lm-step"><span>3</span> Roadmap</div>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('onboarding') }}">
+
+        <!-- Career Goal -->
+        <div class="lm-card mb-4">
+          <div class="lm-card-header">
+            <h6 class="mb-0"><i class="bi bi-bullseye me-2 text-danger"></i>What's your career goal?</h6>
+          </div>
+          <div class="lm-card-body">
+            <div class="lm-goal-grid">
+              {% set goals = [
+                ('bi-bar-chart-fill','Data Scientist'),
+                ('bi-code-slash','Full Stack Developer'),
+                ('bi-shield-lock-fill','Cybersecurity Engineer'),
+                ('bi-phone-fill','Mobile App Developer'),
+                ('bi-cloud-fill','Cloud Engineer'),
+                ('bi-cpu-fill','Machine Learning Engineer'),
+                ('bi-graph-up','DevOps Engineer'),
+                ('bi-palette-fill','UI/UX Designer'),
+              ] %}
+              {% for icon, goal in goals %}
+              <label class="lm-goal-option">
+                <input type="radio" name="career_goal" value="{{ goal }}" class="lm-goal-radio"
+                  {% if user.career_goal == goal %}checked{% endif %}/>
+                <div class="lm-goal-card">
+                  <i class="bi {{ icon }}"></i>
+                  <span>{{ goal }}</span>
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+            <div class="mt-3">
+              <label class="lm-label">Or type a custom goal</label>
+              <input type="text" name="career_goal" class="lm-input mt-1"
+                placeholder="e.g. Blockchain Developer, AI Researcher…"
+                value="{{ user.career_goal if user.career_goal and user.career_goal not in ['Data Scientist','Full Stack Developer','Cybersecurity Engineer','Mobile App Developer','Cloud Engineer','Machine Learning Engineer','DevOps Engineer','UI/UX Designer'] else '' }}"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="lm-card mb-4">
+          <div class="lm-card-header">
+            <h6 class="mb-0"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>What do you already know?</h6>
+          </div>
+          <div class="lm-card-body">
+            <p class="text-muted small mb-3">Select all that apply</p>
+            <div class="lm-skills-grid">
+              {% set skill_list = [
+                'Python','JavaScript','Java','C++','C#','Go','Rust',
+                'HTML/CSS','React','Node.js','SQL','MongoDB','PostgreSQL',
+                'Docker','Kubernetes','AWS','Azure','GCP',
+                'Machine Learning','Deep Learning','NLP','Statistics',
+                'Git','Linux','Agile/Scrum',
+              ] %}
+              {% for skill in skill_list %}
+              <label class="lm-skill-check">
+                <input type="checkbox" name="skills" value="{{ skill }}"
+                  {% if skills and skill in skills %}checked{% endif %}/>
+                <span>{{ skill }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn lm-btn-primary px-5 py-3 lm-btn-lg">
+            <i class="bi bi-stars me-2"></i>Generate My Learning Roadmap
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - User Management{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 40px auto; padding: 0 20px; color: #fff;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="font-size: 1.8rem; font-weight: 700;">Admin Dashboard: Registered Users</h2>
+        <span style="background: #3b82f6; color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+            Total Users: {{ users|length }}
+        </span>
+    </div>
+
+    <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+            <thead>
+                <tr style="background: #1f2937; color: #9ca3af; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">
+                    <th style="padding: 14px 18px;">ID</th>
+                    <th style="padding: 14px 18px;">Name</th>
+                    <th style="padding: 14px 18px;">Email</th>
+                    <th style="padding: 14px 18px;">Career Goal</th>
+                    <th style="padding: 14px 18px;">Skills</th>
+                    <th style="padding: 14px 18px;">Role</th>
+                    <th style="padding: 14px 18px;">Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 14px 18px; color: #9ca3af;">#{{ u.id }}</td>
+                    <td style="padding: 14px 18px; font-weight: 600;">{{ u.name }}</td>
+                    <td style="padding: 14px 18px; color: #d1d5db;">{{ u.email }}</td>
+                    <td style="padding: 14px 18px; color: #9ca3af;">{{ u.career_goal }}</td>
+                    <td style="padding: 14px 18px;">
+                        {% if u.skills %}
+                            {% for skill in u.skills %}
+                                <span style="display: inline-block; background: #374151; color: #e5e7eb; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem; margin-right: 4px; margin-bottom: 4px;">{{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span style="color: #6b7280; font-size: 0.8rem;">None</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 18px;">
+                        {% if u.is_admin %}
+                            <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Admin</span>
+                        {% else %}
+                            <span style="background: rgba(107, 114, 128, 0.2); color: #9ca3af; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">User</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 18px; color: #6b7280; font-size: 0.85rem;">{{ u.joined_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

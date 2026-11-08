@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+{% block page_title %}Course Library{% endblock %}
+
+{% block content %}
+<div class="lm-courses-page">
+
+  <!-- Filter Bar -->
+  <div class="lm-filter-bar mb-4">
+    <div class="lm-search-filter">
+      <i class="bi bi-search"></i>
+      <input type="text" id="courseSearch" placeholder="Search courses…" class="lm-filter-input"/>
+    </div>
+    <div class="lm-filter-pills" id="filterPills">
+      <button class="lm-filter-pill active" data-filter="all">All</button>
+      <button class="lm-filter-pill" data-filter="programming">Programming</button>
+      <button class="lm-filter-pill" data-filter="data">Data Science</button>
+      <button class="lm-filter-pill" data-filter="web">Web Dev</button>
+      <button class="lm-filter-pill" data-filter="cloud">Cloud</button>
+      <button class="lm-filter-pill" data-filter="ai">AI/ML</button>
+      <button class="lm-filter-pill" data-filter="security">Security</button>
+    </div>
+  </div>
+
+  <!-- Course Grid -->
+  <div class="row g-4" id="courseGrid">
+
+    {% set courses_data = [
+      ('Python for Everybody',          'programming', 'bi-code-slash',        'blue',   'Beginner',     '20 hrs',  'Coursera',       'The most popular Python course. Covers fundamentals, data structures, and web scraping.',      4.8),
+      ('Machine Learning A-Z',          'ai',          'bi-cpu-fill',          'purple', 'Intermediate', '44 hrs',  'Udemy',          'Master Machine Learning with Python and R. Covers regression, classification, clustering.', 4.7),
+      ('The Web Developer Bootcamp',    'web',         'bi-globe',             'green',  'Beginner',     '65 hrs',  'Udemy',          'Learn HTML5, CSS3, JS, Node.js, MongoDB and more. The most popular web dev course.',          4.7),
+      ('AWS Certified Solutions Arch.', 'cloud',       'bi-cloud-fill',        'orange', 'Intermediate', '30 hrs',  'A Cloud Guru',   'Comprehensive prep for the AWS Solutions Architect Associate certification.',                 4.6),
+      ('SQL Bootcamp',                  'data',        'bi-database-fill',     'teal',   'Beginner',     '9 hrs',   'Udemy',          'Become an expert at SQL! Learn SQL using PostgreSQL from scratch.',                          4.7),
+      ('Deep Learning Specialization',  'ai',          'bi-diagram-3-fill',    'purple', 'Advanced',     '80 hrs',  'Coursera',       'Build and train deep neural networks by Andrew Ng. Industry standard AI course.',            4.9),
+      ('React - The Complete Guide',    'web',         'bi-braces-asterisk',   'blue',   'Intermediate', '49 hrs',  'Udemy',          'Dive in and learn React from scratch! Components, hooks, Redux, and more.',                 4.7),
+      ('Google Cybersecurity Cert.',    'security',    'bi-shield-lock-fill',  'red',    'Beginner',     '26 hrs',  'Coursera',       'Get job-ready for a career in cybersecurity in under 6 months. No degree required.',        4.8),
+      ('Statistics for Data Science',   'data',        'bi-bar-chart-fill',    'green',  'Beginner',     '15 hrs',  'edX',            'Learn statistical concepts and methods needed for data analysis and machine learning.',      4.6),
+      ('Docker & Kubernetes Mastery',   'cloud',       'bi-box-seam-fill',     'orange', 'Intermediate', '22 hrs',  'Udemy',          'Master DevOps skills: containerize apps with Docker and orchestrate with Kubernetes.',       4.7),
+      ('Natural Language Processing',   'ai',          'bi-chat-dots-fill',    'purple', 'Advanced',     '35 hrs',  'fast.ai',        'Cutting-edge NLP with transformers, BERT, GPT. Build real-world text applications.',        4.8),
+      ('Java Programming Masterclass',  'programming', 'bi-cup-hot-fill',      'teal',   'Beginner',     '80 hrs',  'Udemy',          'Go from zero to Java expert. Covers OOP, data structures, and enterprise patterns.',        4.7),
+    ] %}
+
+    {% for title, category, icon, color, level, duration, platform, desc, rating in courses_data %}
+    <div class="col-md-6 col-xl-4 lm-course-item" data-category="{{ category }}" data-title="{{ title|lower }}">
+      <div class="lm-course-card h-100">
+        <div class="lm-course-card-top lm-cc-{{ color }}">
+          <i class="bi {{ icon }}"></i>
+          <div class="ms-auto">
+            <span class="lm-level-badge">{{ level }}</span>
+          </div>
+        </div>
+        <div class="lm-course-card-body">
+          <div class="lm-course-platform">{{ platform }}</div>
+          <h6 class="lm-course-name mt-1">{{ title }}</h6>
+          <p class="lm-course-desc text-muted small mt-2">{{ desc }}</p>
+          <div class="lm-course-meta-row mt-3">
+            <span class="lm-cm-item"><i class="bi bi-clock"></i> {{ duration }}</span>
+            <span class="lm-cm-item"><i class="bi bi-star-fill text-warning"></i> {{ rating }}</span>
+          </div>
+        </div>
+        <div class="lm-course-card-footer">
+          <button class="btn lm-btn-enroll" onclick="trackCourse('{{ title }}', this)">
+            <i class="bi bi-plus-circle me-1"></i>Add to My Path
+          </button>
+          <button class="btn lm-btn-view" onclick="viewCourseAI('{{ title }}')">
+            <i class="bi bi-stars me-1"></i>AI Insight
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- AI Insight Modal -->
+<div class="modal fade" id="aiInsightModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content lm-modal">
+      <div class="modal-header lm-modal-header">
+        <h5 class="modal-title"><i class="bi bi-stars me-2 text-primary"></i>AI Course Insight</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body lm-modal-body" id="aiInsightBody">
+        <div class="text-center py-4">
+          <div class="lm-spinner mb-3"></div>
+          <p class="text-muted small">IBM Granite is analyzing this course for you…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Filter pills
+document.getElementById('filterPills').addEventListener('click', function(e) {
+  const btn = e.target.closest('.lm-filter-pill');
+  if (!btn) return;
+  document.querySelectorAll('.lm-filter-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filter = btn.dataset.filter;
+  document.querySelectorAll('.lm-course-item').forEach(item => {
+    item.style.display = (filter === 'all' || item.dataset.category === filter) ? '' : 'none';
+  });
+});
+
+// Search
+document.getElementById('courseSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.lm-course-item').forEach(item => {
+    item.style.display = item.dataset.title.includes(q) ? '' : 'none';
+  });
+});
+
+// Track course
+async function trackCourse(course, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="lm-spinner-sm me-1"></span>Adding…';
+  try {
+    const res = await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ course, status: 'in_progress' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Added!';
+      btn.classList.remove('lm-btn-enroll');
+      btn.classList.add('lm-btn-enrolled');
+    }
+  } catch {
+    btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Add to My Path';
+    btn.disabled = false;
+  }
+}
+
+// AI Insight
+async function viewCourseAI(course) {
+  const modal = new bootstrap.Modal(document.getElementById('aiInsightModal'));
+  const body = document.getElementById('aiInsightBody');
+  body.innerHTML = `<div class="text-center py-4"><div class="lm-spinner mb-3"></div><p class="text-muted small">IBM Granite is analyzing this course…</p></div>`;
+  modal.show();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `Should I take "${course}"? How does it fit my career goal? What will I learn and is it worth my time?` })
+    });
+    const data = await res.json();
+    body.innerHTML = `<div class="lm-ai-text">${data.reply.replace(/\n/g,'<br>')}</div>`;
+  } catch {
+    body.innerHTML = '<p class="text-danger">Failed to connect to AI service.</p>';
+  }
+}
+</script>
+{% endblock %}

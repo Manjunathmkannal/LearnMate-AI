@@ -1,0 +1,17 @@
+# Environment variables & secrets
+.env
+
+# Python virtual environment
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Local SQLite databases & uploads
+instance/
+*.db
+*.sqlite3
+
+# OS / Editor files
+.vscode/
+.DS_Store

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}AI Tutor{% endblock %}
+{% block page_title %}AI Learning Tutor{% endblock %}
+
+{% block content %}
+<div class="lm-chatbot-page">
+  <div class="row g-0 lm-chat-layout">
+
+    <!-- Sidebar: info -->
+    <div class="col-lg-3 lm-chat-sidebar d-none d-lg-flex flex-column">
+      <div class="lm-cs-header">
+        <div class="lm-cs-ai-icon"><i class="bi bi-robot"></i></div>
+        <h6 class="mt-2 mb-0">LearnMate AI Tutor</h6>
+        <span class="lm-cs-powered">Powered by IBM Granite</span>
+      </div>
+      <div class="lm-cs-body flex-grow-1 p-3">
+        <p class="text-muted small mb-3">Hi {{ user.name.split()[0] }}! I'm here to help you learn. Try asking:</p>
+        <div class="lm-cs-prompts">
+          <button class="lm-prompt-chip" onclick="usePrompt(this)">What courses should I take first?</button>
+          <button class="lm-prompt-chip" onclick="usePrompt(this)">Explain machine learning in simple terms</button>
+          <button class="lm-prompt-chip" onclick="usePrompt(this)">What projects should I build?</button>
+          <button class="lm-prompt-chip" onclick="usePrompt(this)">How do I prepare for a job interview?</button>
+          <button class="lm-prompt-chip" onclick="usePrompt(this)">What skills are most in demand?</button>
+          <button class="lm-prompt-chip" onclick="usePrompt(this)">Create a weekly study schedule for me</button>
+        </div>
+      </div>
+      <div class="lm-cs-footer p-3">
+        <div class="lm-cs-info-row"><i class="bi bi-shield-check-fill text-success me-2"></i>Secure · Private</div>
+        <div class="lm-cs-info-row mt-1"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>IBM Granite LLM</div>
+      </div>
+    </div>
+
+    <!-- Main chat -->
+    <div class="col-lg-9 d-flex flex-column lm-chat-main">
+
+      <!-- Chat messages -->
+      <div class="lm-chat-window flex-grow-1" id="chatWindow">
+
+        <!-- Welcome message -->
+        <div class="lm-chat-msg lm-msg-ai">
+          <div class="lm-msg-avatar"><i class="bi bi-robot"></i></div>
+          <div class="lm-msg-bubble">
+            <strong>LearnMate AI</strong>
+            <p class="mb-0 mt-1">
+              Hello {{ user.name.split()[0] }}! 👋 I'm your personal AI learning tutor powered by IBM Granite.
+              {% if user.career_goal %}
+                I know you're working towards becoming a <strong>{{ user.career_goal }}</strong>.
+              {% endif %}
+              How can I help you today? Ask me about courses, concepts, career advice, or study strategies.
+            </p>
+            <div class="lm-msg-time">{{ moment().format() if moment else 'Just now' }}</div>
+          </div>
+        </div>
+
+        <!-- Existing chat history -->
+        {% for msg in history %}
+        <div class="lm-chat-msg {% if msg.role == 'user' %}lm-msg-user{% else %}lm-msg-ai{% endif %}">
+          {% if msg.role == 'assistant' %}
+            <div class="lm-msg-avatar"><i class="bi bi-robot"></i></div>
+          {% endif %}
+          <div class="lm-msg-bubble">
+            {% if msg.role == 'assistant' %}<strong>LearnMate AI</strong>{% else %}<strong>You</strong>{% endif %}
+            <p class="mb-0 mt-1">{{ msg.message }}</p>
+          </div>
+          {% if msg.role == 'user' %}
+            <div class="lm-msg-avatar lm-msg-user-avatar">{{ user.name[0].upper() }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Typing indicator (hidden) -->
+        <div class="lm-chat-msg lm-msg-ai" id="typingIndicator" style="display:none">
+          <div class="lm-msg-avatar"><i class="bi bi-robot"></i></div>
+          <div class="lm-msg-bubble">
+            <div class="lm-typing-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat input -->
+      <div class="lm-chat-input-area">
+        <div class="lm-chat-input-wrap">
+          <textarea id="chatInput" class="lm-chat-textarea" rows="1"
+            placeholder="Ask your AI tutor anything…"></textarea>
+          <button id="sendBtn" class="lm-send-btn">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+        <div class="lm-chat-hint mt-1 text-muted" style="font-size:11px;">
+          Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const chatWindow  = document.getElementById('chatWindow');
+const chatInput   = document.getElementById('chatInput');
+const sendBtn     = document.getElementById('sendBtn');
+const typingInd   = document.getElementById('typingIndicator');
+
+function scrollBottom() {
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+scrollBottom();
+
+function usePrompt(btn) {
+  chatInput.value = btn.textContent.trim();
+  chatInput.focus();
+}
+
+function appendMsg(role, html) {
+  const isAI = role === 'ai';
+  const div = document.createElement('div');
+  div.className = `lm-chat-msg ${isAI ? 'lm-msg-ai' : 'lm-msg-user'}`;
+  div.innerHTML = `
+    ${isAI ? '<div class="lm-msg-avatar"><i class="bi bi-robot"></i></div>' : ''}
+    <div class="lm-msg-bubble">
+      ${isAI ? '<strong>LearnMate AI</strong>' : '<strong>You</strong>'}
+      <p class="mb-0 mt-1">${html}</p>
+    </div>
+    ${!isAI ? '<div class="lm-msg-avatar lm-msg-user-avatar">{{ user.name[0].upper() }}</div>' : ''}
+  `;
+  chatWindow.insertBefore(div, typingInd);
+  scrollBottom();
+}
+
+async function sendMessage() {
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+
+  appendMsg('user', msg.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  sendBtn.disabled = true;
+  typingInd.style.display = 'flex';
+  scrollBottom();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    });
+    const data = await res.json();
+    typingInd.style.display = 'none';
+    const reply = (data.reply || 'No response.').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    appendMsg('ai', reply);
+  } catch {
+    typingInd.style.display = 'none';
+    appendMsg('ai', 'Connection error. Please try again.');
+  } finally {
+    sendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// Auto-resize textarea
+chatInput.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+</script>
+{% endblock %}

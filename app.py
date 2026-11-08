@@ -16,6 +16,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-prod')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///learnmate.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'connect_args': {'timeout': 30, 'check_same_thread': False}
+}
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -73,10 +76,13 @@ def load_user(user_id):
 
 
 # ---------------------------------------------------------------------------
-# Database Initialization (Runs on module import for Gunicorn & Flask run)
+# Database Initialization
 # ---------------------------------------------------------------------------
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        app.logger.warning(f"Database init notice: {e}")
 
 
 # ---------------------------------------------------------------------------

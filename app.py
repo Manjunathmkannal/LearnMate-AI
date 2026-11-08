@@ -187,8 +187,17 @@ def logout():
 
 
 # ---------------------------------------------------------------------------
-# Routes – Admin Dashboard
+# Routes – Admin Dashboard & Activation
 # ---------------------------------------------------------------------------
+@app.route('/make-admin')
+@login_required
+def make_admin():
+    current_user.is_admin = True
+    db.session.commit()
+    flash('Admin privileges granted successfully!', 'success')
+    return redirect(url_for('admin_users'))
+
+
 @app.route('/admin/users')
 @login_required
 def admin_users():
